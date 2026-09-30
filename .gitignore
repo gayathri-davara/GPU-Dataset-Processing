@@ -1,0 +1,33 @@
+# Executables
+*.exe
+
+# Visual Studio object files
+*.obj
+
+# Debug/build files
+*.pdb
+*.ilk
+*.lib
+*.exp
+
+# CUDA build artifacts
+*.ptx
+*.cubin
+*.fatbin
+
+# Large generated datasets
+data/*.bin
+*.bin
+
+# Temporary files
+*.tmp
+*.log
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+.DS_Store
