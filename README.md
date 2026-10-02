@@ -1,848 +1,457 @@
-\# 🚀 LET'S GOOOO BRO
+# GPU Dataset Processing Using CUDA
 
+## Parallel Computing Lab Evaluation — Team 8
 
+**Topic:** GPU Dataset Processing  
+**Parallel Model:** NVIDIA CUDA  
+**Benchmark GPU:** NVIDIA GeForce RTX 5060 Ti  
+**CUDA Toolkit:** 13.4
 
-Now we're generating the \*\*README.md and .gitignore directly inside your real Windows project\*\*.
+---
 
+## 1. Objective
 
+The objective of this project is to process large numerical datasets using CUDA and compare sequential CPU processing with parallel GPU processing.
 
-\## 1️⃣ Generate README
+The program performs the following operations:
 
-
-
-\*\*Run on: PowerX PC — x64 Native Tools Command Prompt for Visual Studio\*\*
-
-
-
-```bat
-
-cd /d C:\\Users\\PowerX\\GPU-Dataset-Processing
-
-
-
-notepad README.md
-
-```
-
-
-
-Paste this entire README:
-
-
-
-```markdown
-
-\# GPU Dataset Processing Using CUDA
-
-
-
-\## Parallel Computing Lab Evaluation — Team 8
-
-
-
-\*\*Topic:\*\* GPU Dataset Processing  
-
-\*\*Parallel Model:\*\* CUDA  
-
-\*\*GPU:\*\* NVIDIA GeForce RTX 5060 Ti  
-
-\*\*CUDA Toolkit:\*\* 13.4
-
-
-
-\---
-
-
-
-\## 1. Objective
-
-
-
-The objective of this project is to process a large numerical dataset using CUDA and analyze the execution-time difference between sequential CPU processing and GPU-based parallel processing.
-
-
-
-The program performs:
-
-
-
-\- SUM
-
-\- MINIMUM
-
-\- MAXIMUM
-
-\- AVERAGE
-
-
+- SUM
+- MINIMUM
+- MAXIMUM
+- AVERAGE
 
 The experiment compares:
 
+1. Sequential CPU processing
+2. Parallel CUDA GPU processing
 
+The measured metrics include:
 
-1\. Sequential CPU processing
+- CPU execution time
+- GPU kernel execution time
+- GPU total measured processing time
+- Numerical validation
+- Kernel-only speedup
+- Total measured speedup
 
-2\. Parallel CUDA GPU processing
+---
 
+## 2. Hardware and Software
 
+### Hardware
 
-The experiment measures CPU execution time, GPU kernel execution time, GPU total processing time, validation error, and speedup.
+- NVIDIA GeForce RTX 5060 Ti
+- Approximately 16 GB VRAM
+- Compute Capability 12.0
 
+### Software
 
+- Windows
+- NVIDIA Driver 610.88
+- CUDA Toolkit 13.4
+- Visual Studio 2026 Build Tools
+- MSVC x64 compiler
+- C++
+- CUDA C++
 
-\---
+The benchmark was executed on the PowerX PC using the NVIDIA GPU listed above.
 
-
-
-\## 2. Hardware and Software
-
-
-
-\### Hardware
-
-
-
-\- NVIDIA GeForce RTX 5060 Ti
-
-\- Approximately 16 GB VRAM
-
-\- Compute Capability 12.0
-
-
-
-\### Software
-
-
-
-\- Windows
-
-\- NVIDIA Driver 610.88
-
-\- CUDA Toolkit 13.4
-
-\- Visual Studio 2026 Build Tools
-
-\- MSVC x64 compiler
-
-\- C++
-
-\- CUDA C++
-
-
-
-The CUDA programs were compiled for the native GPU architecture using:
-
-
+CUDA programs were compiled for the target GPU architecture using:
 
 ```text
-
-nvcc -arch=compute\_120 -code=sm\_120
-
+nvcc -arch=compute_120 -code=sm_120
 ```
 
+---
 
+## 3. Dataset
 
-\---
+Synthetic floating-point datasets were generated using the Mersenne Twister random-number generator.
 
-
-
-\## 3. Dataset
-
-
-
-Synthetic floating-point datasets were generated using a reproducible Mersenne Twister random-number generator.
-
-
-
-Random values are generated between:
-
-
+Each dataset uses:
 
 ```text
-
-0.0 and 1000.0
-
+Random generator: std::mt19937
+Seed: 42
+Distribution: uniform_real_distribution<float>
+Range: 0.0 to 1000.0
 ```
 
+A fixed seed of `42` is used to make dataset generation reproducible.
 
+Each element is stored as a 32-bit floating-point value.
 
-A fixed random seed of `42` is used so that the generated datasets are reproducible.
-
-
-
-\### Dataset sizes
-
-
+### Dataset Sizes
 
 | Dataset | Elements | Approx. Size |
-
 |---:|---:|---:|
-
 | 1M | 1,000,000 | 4 MB |
-
 | 5M | 5,000,000 | 20 MB |
-
 | 10M | 10,000,000 | 40 MB |
-
 | 50M | 50,000,000 | 200 MB |
-
 | 100M | 100,000,000 | 400 MB |
 
+The binary datasets are generated locally and excluded from GitHub because of their size.
 
+---
 
-The generated binary datasets are excluded from GitHub because of their large size.
-
-
-
-\---
-
-
-
-\## 4. CUDA Implementation
-
-
+## 4. CUDA Implementation
 
 The GPU implementation uses a parallel reduction strategy.
 
+Each CUDA thread processes input elements using a grid-stride loop. Threads within a block compute partial results, which are then reduced using shared memory.
 
+The GPU computes partial:
 
-Each CUDA block processes a portion of the input dataset and calculates partial:
+- Sum
+- Minimum
+- Maximum
 
+The resulting block-level partial values are combined on the host.
 
-
-\- Sum
-
-\- Minimum
-
-\- Maximum
-
-
-
-Shared memory is used for block-level reduction.
-
-
-
-The CPU combines the resulting block partials.
-
-
-
-\### CUDA configuration
-
-
+### CUDA Configuration
 
 ```text
-
 Threads per block: 256
-
-Number of blocks : 256
-
+Number of blocks: 256
+Total launched threads: 65,536
 ```
 
+The same launch configuration is used for all tested dataset sizes.
 
+Because a grid-stride loop is used, each thread can process multiple input elements as the dataset size increases.
 
 The implementation avoids global floating-point atomic operations for the main reduction.
 
+---
 
+## 5. Timing Methodology
 
-\---
+### CPU Execution Time
 
+CPU execution time represents the time required by the sequential CPU implementation to process all dataset elements.
 
+### GPU Kernel Execution Time
 
-\## 5. Timing Methodology
+GPU kernel execution time is measured using CUDA events around the CUDA kernel launch.
 
+This represents the computation performed by the GPU kernel without including host-device memory transfers.
 
+### GPU Total Measured Time
 
-\### CPU Time
+The GPU total measured time includes:
 
+- Host-to-device memory transfer
+- CUDA kernel execution
+- Device-to-host memory transfer
 
+File loading is excluded from these measurements.
 
-The time required by the sequential CPU implementation to process all dataset elements.
+**Note:** CUDA memory allocation and the final host-side aggregation of the block-level results are outside this measured interval. Therefore, this metric is referred to as **GPU Total Measured Time** rather than complete application end-to-end time.
 
+This distinction is important because kernel-only speedup can be substantially higher than the measured total speedup when memory-transfer overhead contributes significantly to the processing time.
 
+---
 
-\### GPU Kernel Time
+## 6. Benchmark Results
 
-
-
-The CUDA kernel execution time measured using CUDA events.
-
-
-
-\### GPU Total Time
-
-
-
-The end-to-end GPU processing time including:
-
-
-
-\- Host-to-device transfer
-
-\- CUDA kernel execution
-
-\- Device-to-host transfer
-
-
-
-File loading is excluded from these processing measurements.
-
-
-
-This distinction is important because kernel-only acceleration can be much larger than complete GPU application speedup when memory-transfer overhead is significant.
-
-
-
-\---
-
-
-
-\# 6. Benchmark Results
-
-
-
-| Dataset | CPU Time (ms) | GPU Kernel (ms) | GPU Total (ms) | Kernel Speedup | Total Speedup |
-
+| Dataset | CPU Time (ms) | GPU Kernel (ms) | GPU Total Measured (ms) | Kernel Speedup | Total Speedup |
 |---:|---:|---:|---:|---:|---:|
-
 | 1M | 1.9734 | 0.187328 | 1.081184 | 10.53x | 1.83x |
-
 | 5M | 9.9669 | 0.176640 | 3.189056 | 56.42x | 3.13x |
-
 | 10M | 19.6427 | 0.218080 | 6.083776 | 90.07x | 3.23x |
-
 | 50M | 95.6955 | 0.821696 | 32.505569 | 116.46x | 2.94x |
-
 | 100M | 190.1299 | 1.410784 | 57.622017 | 134.77x | 3.30x |
 
+### Speedup Calculation
 
-
-\---
-
-
-
-\## 7. Validation
-
-
-
-GPU results were compared against CPU results.
-
-
-
-Minimum and maximum values matched across all tested datasets.
-
-
-
-Average-value differences remained approximately `0.000001` or smaller.
-
-
-
-The SUM values show small numerical differences because CPU and GPU floating-point reductions use different accumulation orders.
-
-
-
-For example, for 100M elements:
-
-
+Kernel speedup:
 
 ```text
+Kernel Speedup = CPU Time / GPU Kernel Time
+```
 
+Measured total speedup:
+
+```text
+Total Speedup = CPU Time / GPU Total Measured Time
+```
+
+For example, for the 100M dataset:
+
+```text
+Kernel Speedup = 190.1299 / 1.410784
+               ≈ 134.77x
+
+Total Speedup = 190.1299 / 57.622017
+              ≈ 3.30x
+```
+
+---
+
+## 7. Validation
+
+GPU results were compared against CPU reference results.
+
+The minimum and maximum values matched across the tested datasets.
+
+Average-value differences were approximately `0.000001` or smaller in the recorded benchmark results.
+
+The SUM values show small numerical differences because CPU and GPU reductions use different floating-point accumulation paths, including differences in accumulation order and intermediate precision.
+
+For the 100M dataset:
+
+```text
 CPU SUM       = 49997551604.514511
-
 GPU SUM       = 49997551456.000000
-
 SUM difference = 148.514511
-
 ```
 
-
-
-This difference is small relative to the approximately 50-billion total.
-
-
-
-Therefore, validation uses numerical tolerance rather than exact floating-point equality.
-
-
-
-\---
-
-
-
-\## 8. Performance Analysis
-
-
-
-\### CPU Scaling
-
-
-
-CPU processing time increases substantially as the dataset size increases.
-
-
+Although the absolute difference is `148.514511`, the CPU SUM is approximately `49.997 billion`, making the relative difference approximately:
 
 ```text
+0.000000297%
+```
 
+Therefore, the SUM difference is extremely small relative to the total accumulated value.
+
+Validation uses numerical tolerance rather than exact floating-point equality.
+
+---
+
+## 8. Performance Analysis
+
+### CPU Scaling
+
+CPU execution time increases substantially as the dataset size increases.
+
+Selected measurements:
+
+```text
 1M   = 1.9734 ms
-
 10M  = 19.6427 ms
-
 100M = 190.1299 ms
-
 ```
 
+The CPU processing time scales approximately with the number of input elements.
 
+### GPU Kernel Performance
 
-\### GPU Kernel Performance
+The CUDA kernel remains significantly faster than the sequential CPU computation.
 
-
-
-The CUDA kernel remains very fast even for the largest dataset.
-
-
+Selected measurements:
 
 ```text
-
 1M   = 0.187328 ms
-
 100M = 1.410784 ms
-
 ```
 
-
-
-Kernel-only speedup increased from:
-
-
+Kernel-only speedup increases substantially as the dataset size grows:
 
 ```text
-
-10.53x at 1M
-
+1M   = 10.53x
+5M   = 56.42x
+10M  = 90.07x
+50M  = 116.46x
+100M = 134.77x
 ```
 
+The small difference between the 1M and 5M kernel measurements is expected from GPU timing variability at very small execution times. The larger datasets show the scaling behaviour more clearly.
 
+### Measured Total Performance
 
-to:
-
-
+When host-device memory transfers are included, the measured total speedup is lower than the kernel-only speedup.
 
 ```text
-
-134.77x at 100M
-
+1M   = 1.83x
+5M   = 3.13x
+10M  = 3.23x
+50M  = 2.94x
+100M = 3.30x
 ```
 
+This demonstrates that memory-transfer overhead contributes significantly to the overall measured GPU processing time.
 
+---
 
-\### End-to-End Performance
+## 9. Graphs
 
+The project includes five SVG graphs generated from the benchmark results.
 
+### CPU Execution Time
 
-When memory transfers are included, the measured total speedup is lower:
+![CPU Execution Time](graphs/cpu_execution_time.svg)
 
+### GPU Kernel Execution Time
 
+![GPU Kernel Execution Time](graphs/gpu_kernel_time.svg)
 
-```text
+### GPU Total Measured Time
 
-1.83x at 1M
+![GPU Total Measured Time](graphs/gpu_total_time.svg)
 
-3.30x at 100M
+### Kernel Speedup
 
-```
+![Kernel Speedup](graphs/kernel_speedup.svg)
 
+### Total Measured Speedup
 
+![Total Measured Speedup](graphs/total_speedup.svg)
 
-This demonstrates the effect of CPU-GPU memory-transfer overhead on complete application performance.
+SVG format is used so the graphs remain clear when included in reports and presentations.
 
+---
 
-
-\---
-
-
-
-\## 9. Graphs
-
-
-
-The `graphs` directory contains:
-
-
-
-\- CPU execution time
-
-\- GPU kernel execution time
-
-\- GPU total execution time
-
-\- GPU kernel speedup
-
-\- GPU total speedup
-
-
-
-Graph files are stored in SVG format for high-quality scaling in reports and presentations.
-
-
-
-\---
-
-
-
-\## 10. Project Structure
-
-
+## 10. Project Structure
 
 ```text
-
 GPU-Dataset-Processing/
-
 │
-
-├── data/
-
-│   ├── dataset\_1M.bin
-
-│   ├── dataset\_5M.bin
-
-│   ├── dataset\_10M.bin
-
-│   ├── dataset\_50M.bin
-
-│   └── dataset\_100M.bin
-
+├── data/                         # Generated locally; not tracked by Git
+│   ├── dataset_1M.bin
+│   ├── dataset_5M.bin
+│   ├── dataset_10M.bin
+│   ├── dataset_50M.bin
+│   └── dataset_100M.bin
 │
-
 ├── graphs/
-
-│   ├── cpu\_execution\_time.svg
-
-│   ├── gpu\_kernel\_time.svg
-
-│   ├── gpu\_total\_time.svg
-
-│   ├── kernel\_speedup.svg
-
-│   └── total\_speedup.svg
-
+│   ├── cpu_execution_time.svg
+│   ├── gpu_kernel_time.svg
+│   ├── gpu_total_time.svg
+│   ├── kernel_speedup.svg
+│   └── total_speedup.svg
 │
-
 ├── results/
-
-│   └── benchmark\_results.csv
-
+│   └── benchmark_results.csv
 │
-
 ├── src/
-
-│   ├── cuda\_test.cu
-
-│   ├── generate\_dataset.cpp
-
-│   ├── generate\_dataset\_5M.cpp
-
-│   ├── generate\_dataset\_10M.cpp
-
-│   ├── generate\_dataset\_50M.cpp
-
-│   ├── generate\_dataset\_100M.cpp
-
-│   ├── gpu\_dataset.cu
-
-│   ├── gpu\_dataset\_v1\_working.cu
-
-│   ├── gpu\_benchmark.cu
-
-│   ├── gpu\_benchmark\_5M.cu
-
-│   ├── gpu\_benchmark\_10M.cu
-
-│   ├── gpu\_benchmark\_50M.cu
-
-│   └── gpu\_benchmark\_100M.cu
-
+│   ├── cuda_test.cu
+│   ├── generate_dataset.cpp
+│   ├── generate_dataset_5M.cpp
+│   ├── generate_dataset_10M.cpp
+│   ├── generate_dataset_50M.cpp
+│   ├── generate_dataset_100M.cpp
+│   ├── generate_graphs.cpp
+│   ├── gpu_dataset.cu
+│   ├── gpu_dataset_v1_working.cu
+│   ├── gpu_benchmark.cu
+│   ├── gpu_benchmark_5M.cu
+│   ├── gpu_benchmark_10M.cu
+│   ├── gpu_benchmark_50M.cu
+│   └── gpu_benchmark_100M.cu
 │
-
 ├── README.md
-
 └── .gitignore
-
 ```
 
+The `data/*.bin` files are generated locally and are intentionally excluded from the repository.
 
+---
 
-\---
+## 11. Build Instructions
 
+Open an **x64 Native Tools Command Prompt for Visual Studio** on a system with the required NVIDIA CUDA environment.
 
-
-\## 11. Build Instructions
-
-
-
-Open an \*\*x64 Native Tools Command Prompt for Visual Studio\*\*.
-
-
-
-Navigate to the project:
-
-
+Navigate to the project directory:
 
 ```bat
-
-cd /d C:\\Users\\PowerX\\GPU-Dataset-Processing
-
+cd /d C:\Users\PowerX\GPU-Dataset-Processing
 ```
 
-
-
-Compile the main CUDA benchmark:
-
-
+### Compile the main CUDA benchmark
 
 ```bat
-
-nvcc -arch=compute\_120 -code=sm\_120 .\\src\\gpu\_benchmark.cu -o .\\gpu\_benchmark.exe
-
+nvcc -arch=compute_120 -code=sm_120 .\src\gpu_benchmark.cu -o .\gpu_benchmark.exe
 ```
-
-
 
 Run:
 
-
-
 ```bat
-
-.\\gpu\_benchmark.exe
-
+.\gpu_benchmark.exe
 ```
 
+The same procedure can be used with the dataset-specific benchmark programs.
 
+---
 
-\---
+## 12. Reproducing the Experiment
 
+The benchmark datasets can be generated using the provided C++ dataset generators.
 
+The generators create the binary files inside the project's `data` directory.
 
-\## 12. Reproducing the Experiment
+### Example: Generate the 100M Dataset
 
-
-
-Example: generate the 100M dataset.
-
-
-
-Compile the generator:
-
-
+Compile:
 
 ```bat
-
-cl .\\src\\generate\_dataset\_100M.cpp /EHsc /Fe:.\\generate\_dataset\_100M.exe
-
+cl .\src\generate_dataset_100M.cpp /EHsc /Fe:.\generate_dataset_100M.exe
 ```
-
-
 
 Run:
 
-
-
 ```bat
-
-.\\generate\_dataset\_100M.exe
-
+.\generate_dataset_100M.exe
 ```
 
+The program generates:
 
-
-Compile the CUDA benchmark:
-
-
-
-```bat
-
-nvcc -arch=compute\_120 -code=sm\_120 .\\src\\gpu\_benchmark\_100M.cu -o .\\gpu\_benchmark\_100M.exe
-
+```text
+data\dataset_100M.bin
 ```
 
+with:
 
+```text
+100,000,000 floating-point elements
+Approximately 400 MB
+Random seed: 42
+Value range: 0.0 to 1000.0
+```
+
+### Compile the 100M CUDA Benchmark
+
+```bat
+nvcc -arch=compute_120 -code=sm_120 .\src\gpu_benchmark_100M.cu -o .\gpu_benchmark_100M.exe
+```
 
 Run:
 
-
-
 ```bat
-
-.\\gpu\_benchmark\_100M.exe
-
+.\gpu_benchmark_100M.exe
 ```
 
+The same approach applies to the 1M, 5M, 10M and 50M datasets.
 
+---
 
-\---
+## 13. Results Summary
 
-
-
-\## 13. Conclusion
-
-
-
-The experiment demonstrates the benefits of GPU parallel processing for large numerical datasets.
-
-
+The experiment demonstrates the difference between GPU kernel acceleration and measured GPU processing performance that includes data transfers.
 
 The maximum measured kernel-only speedup was:
 
-
-
 ```text
-
 134.77x
-
 ```
 
+for the 100M-element dataset.
 
-
-at 100M elements.
-
-
-
-The maximum measured end-to-end speedup was:
-
-
+The maximum measured total speedup was:
 
 ```text
-
 3.30x
-
 ```
 
+for the 100M-element dataset.
 
+The results demonstrate that CUDA parallel processing can substantially accelerate the computational portion of large numerical reductions, while host-device data transfers contribute significantly to the measured total processing time.
 
-at 100M elements.
+---
 
+## 14. Team
 
+**Parallel Computing Lab Evaluation — Team 8**
 
-The results demonstrate that CUDA can provide substantial computational acceleration while also showing that CPU-GPU memory-transfer overhead affects complete application performance.
-
-
-
-\---
-
-
-
-\## 14. Team
-
-
-
-\*\*Parallel Computing Lab Evaluation — Team 8\*\*
-
-
-
-\*\*Topic:\*\* GPU Dataset Processing  
-
-\*\*Technology:\*\* NVIDIA CUDA
-
-```
-
-
-
-Save and close Notepad.
-
-
-
-\---
-
-
-
-\# 2️⃣ Generate `.gitignore`
-
-
-
-\*\*Run on: PowerX PC — same command prompt\*\*
-
-
-
-```bat
-
-notepad .gitignore
-
-```
-
-
-
-Paste:
-
-
-
-```gitignore
-
-\# Executables
-
-\*.exe
-
-
-
-\# Visual Studio object files
-
-\*.obj
-
-
-
-\# Debug/build files
-
-\*.pdb
-
-\*.ilk
-
-\*.lib
-
-\*.exp
-
-
-
-\# CUDA build artifacts
-
-\*.ptx
-
-\*.cubin
-
-\*.fatbin
-
-
-
-\# Large generated datasets
-
-data/\*.bin
-
-\*.bin
-
-
-
-\# Temporary files
-
-\*.tmp
-
-\*.log
-
-
-
-\# IDE files
-
-.vs/
-
-.vscode/
-
-.idea/
-
-
-
-\# OS files
-
-Thumbs.db
-
-.DS\_Store
-
-```
-
-
-
+**Topic:** GPU Dataset Processing  
+**Technology:** NVIDIA CUDA
