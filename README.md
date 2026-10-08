@@ -179,38 +179,32 @@ The 10 GB dataset successfully fit into the available GPU memory while leaving a
 
 ---
 
-# 📸 Experiment Screenshots
-
-The project includes screenshots documenting each benchmark configuration and execution.
+## 📸 Experiment Screenshots
 
 ### 1 GB
 
-- `screenshots/1Gb_1.jpeg`
-- `screenshots/1GB_2.jpeg`
+![1 GB Benchmark](screenshots/1Gb_1.jpeg)
+![1 GB GPU Memory](screenshots/1GB_2.jpeg)
 
 ### 4 GB
 
-- `screenshots/4GB_1.jpeg`
-- `screenshots/4GB_2.jpeg`
+![4 GB Benchmark](screenshots/4GB_1.jpeg)
+![4 GB GPU Memory](screenshots/4GB_2.jpeg)
 
 ### 6 GB
 
-- `screenshots/6GB_1.jpeg`
-- `screenshots/6GB_2.jpeg`
+![6 GB Benchmark](screenshots/6GB_1.jpeg)
+![6 GB GPU Memory](screenshots/6GB_2.jpeg)
 
 ### 8 GB
 
-- `screenshots/8GB_1.jpeg`
-- `screenshots/8GB_2.jpeg`
+![8 GB Benchmark](screenshots/8GB_1.jpeg)
+![8 GB GPU Memory](screenshots/8GB_2.jpeg)
 
 ### 10 GB
 
-- `screenshots/10GB_1.jpeg`
-- `screenshots/10Gb_2.jpeg`
-
-These screenshots provide evidence of the completed benchmark experiments and GPU resource usage.
-
----
+![10 GB Benchmark](screenshots/10GB_1.jpeg)
+![10 GB GPU Memory](screenshots/10Gb_2.jpeg)
 
 # 📁 Project Structure
 
